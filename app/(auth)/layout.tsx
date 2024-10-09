@@ -8,6 +8,7 @@ const layout = ({children}:{children:ReactNode}) => {
         <Logo/>
         <div className='mt-12'>
             {children}
+            
 
         </div>
 
