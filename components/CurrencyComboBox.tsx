@@ -22,7 +22,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { Currencies, currency } from "@/lib/currency"
+import { Currencies, Currency } from "@/lib/currency"
+import { useMutation, useQuery } from "@tanstack/react-query"
+import SkeletonWrapper from "./SkeletonWrapper"
+import { UserSettings } from "@prisma/client"
+import { updateUserCurrency } from "@/app/wizard/_actions/userSettings"
 
 
 
@@ -31,30 +35,55 @@ import { Currencies, currency } from "@/lib/currency"
 export function CurrencyComboBox() {
   const [open, setOpen] = React.useState(false)
   const isDesktop = useMediaQuery("(min-width: 768px)")
-  const [selectedOption, setSelectedOption] = React.useState<currency | null>(
+  const [selectedOption, setSelectedOption] = React.useState<Currency | null>(
     null
   )
 
+  const userSettings =useQuery<UserSettings>({
+    queryKey:['userSettings'],
+    queryFn:()=>fetch("/api/user-settings").then((res)=> res.json()),
+
+  })
+
+
+  React.useEffect(() => {
+    if(!userSettings.data) return;
+    const userCurrency=Currencies.find((Currencies)=>
+    Currencies.Value=== userSettings.data.currency)
+
+    if(userCurrency) setSelectedOption(userCurrency)
+  
+  }, [userSettings.data])
+
+  const mutation=useMutation({
+    mutationFn:updateUserCurrency,
+  })
+  
+ 
+
   if (isDesktop) {
     return (
+      <SkeletonWrapper isLoading={userSettings.isFetching}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button variant="outline" className="w-[150px] justify-start">
-            {selectedOption ? <>{selectedOption.label}</> : <>+ Set status</>}
+          <Button variant="outline" className="w-full">
+            {selectedOption ? <>{selectedOption.label}</> : <>+ Set currency</>}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[200px] p-0" align="start">
           <OptionList setOpen={setOpen} setSelectedOption={setSelectedOption} />
         </PopoverContent>
       </Popover>
+      </SkeletonWrapper>
     )
   }
 
   return (
+    <SkeletonWrapper isLoading={userSettings.isFetching}>
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
-        <Button variant="outline" className="w-[150px] justify-start">
-          {selectedOption ? <>{selectedOption.label}</> : <>+ Set status</>}
+        <Button variant="outline" className="w-full">
+          {selectedOption ? <>{selectedOption.label}</> : <>+ Set currency</>}
         </Button>
       </DrawerTrigger>
       <DrawerContent>
@@ -63,6 +92,7 @@ export function CurrencyComboBox() {
         </div>
       </DrawerContent>
     </Drawer>
+    </SkeletonWrapper>
   )
 }
 
@@ -71,7 +101,7 @@ function OptionList({
   setSelectedOption,
 }: {
   setOpen: (open: boolean) => void
-  setSelectedOption: (status: currency | null) => void
+  setSelectedOption: (status: Currency | null) => void
 }) {
   return (
     <Command>
@@ -79,13 +109,13 @@ function OptionList({
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
         <CommandGroup>
-          {Currencies.map((currency: currency) => (
+          {Currencies.map((currency :  Currency) => (
             <CommandItem
-              key={currency.value}
-              value={currency.value}
+              key={currency.Value}
+              value={currency.Value}
               onSelect={(value) => {
                 setSelectedOption(
-                  Currencies.find((priority) => priority.value === value) || null
+                  Currencies.find((priority) => priority.Value === value) || null
                 )
                 setOpen(false)
               }}

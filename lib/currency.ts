@@ -8,4 +8,4 @@ export const Currencies=[
     
 ];
 
-export type currency=(typeof Currencies)[0];
+export type Currency = (typeof Currencies)[0];
