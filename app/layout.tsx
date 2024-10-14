@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "@/components/providers/Theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 
 export const metadata: Metadata = {
@@ -17,8 +18,8 @@ export default function RootLayout({
   return (
     <ClerkProvider>
     <html lang="en">
-      <body 
-      >
+      <body>
+        <Toaster richColors position="bottom-right"/>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"

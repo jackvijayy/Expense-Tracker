@@ -27,6 +27,7 @@ import { useMutation, useQuery } from "@tanstack/react-query"
 import SkeletonWrapper from "./SkeletonWrapper"
 import { UserSettings } from "@prisma/client"
 import { updateUserCurrency } from "@/app/wizard/_actions/userSettings"
+import { toast } from "sonner"
 
 
 
@@ -58,6 +59,20 @@ export function CurrencyComboBox() {
   const mutation=useMutation({
     mutationFn:updateUserCurrency,
   })
+  const selectOption =React.useCallback((currency:Currency | null)=>{
+    if(!currency) {
+      toast.error("Please select the Currency");
+      return;
+
+    }
+    toast.loading("Updating Currency...",{
+      id:"update-currency"
+    });
+    mutation.mutate(currency.Value);
+
+  },
+  [mutation]
+)
   
  
 
@@ -66,12 +81,12 @@ export function CurrencyComboBox() {
       <SkeletonWrapper isLoading={userSettings.isFetching}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button variant="outline" className="w-full">
+          <Button variant="outline" className="w-full" disabled={mutation.isPending}>
             {selectedOption ? <>{selectedOption.label}</> : <>+ Set currency</>}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[200px] p-0" align="start">
-          <OptionList setOpen={setOpen} setSelectedOption={setSelectedOption} />
+          <OptionList setOpen={setOpen} setSelectedOption={selectOption} />
         </PopoverContent>
       </Popover>
       </SkeletonWrapper>
@@ -88,7 +103,7 @@ export function CurrencyComboBox() {
       </DrawerTrigger>
       <DrawerContent>
         <div className="mt-4 border-t">
-          <OptionList setOpen={setOpen} setSelectedOption={setSelectedOption} />
+          <OptionList setOpen={setOpen} setSelectedOption={selectOption} />
         </div>
       </DrawerContent>
     </Drawer>
